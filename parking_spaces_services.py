@@ -1,47 +1,29 @@
-import sqlite3
+class ParkingSpacesServices:
+    def __init__(self, db_connection):
+        self.db = db_connection
+        self.cursor = self.db.cursor()
 
-class ParkingSpacesService:
-    def __init__(self, db_path):
-        self.db_path = db_path
-
-    def get_connection(self):
-        return sqlite3.connect(self.db_path)
-
-    
     def get_space(self, space_id):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM parking_spaces WHERE space_id = ?", (space_id,))
-        space = cursor.fetchone()
-        conn.close()
-        return space
+        query = "SELECT * FROM parking_spaces WHERE space_id = ?"
+        self.cursor.execute(query, (space_id,))
+        return self.cursor.fetchone()
 
     def get_all_spaces(self):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM parking_spaces")
-        spaces = cursor.fetchall()
-        conn.close()
-        return spaces
+        query = "SELECT * FROM parking_spaces"
+        self.cursor.execute(query)
+        return self.cursor.fetchall()
 
     def get_available_spaces(self):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM parking_spaces WHERE status = 'available'")
-        spaces = cursor.fetchall()
-        conn.close()
-        return spaces
+        query = "SELECT * FROM parking_spaces WHERE status = ?"
+        self.cursor.execute(query, ("available",))
+        return self.cursor.fetchall()
 
     def recommend_space(self):
-        available_spaces = self.get_available_spaces()
-        if available_spaces:
-            return available_spaces[0] 
-        return "Sorry, no parking spaces available right now."
+        query = "SELECT * FROM parking_spaces WHERE status = ? LIMIT 1"
+        self.cursor.execute(query, ("available",))
+        return self.cursor.fetchone()
 
     def update_space_status(self, space_id, new_status):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("UPDATE parking_spaces SET status = ? WHERE space_id = ?", (new_status, space_id))
-        conn.commit()
-        conn.close()
-        return f"Space {space_id} status updated to {new_status}"
+        query = "UPDATE parking_spaces SET status = ? WHERE space_id = ?"
+        self.cursor.execute(query, (new_status, space_id))
+        self.db.commit()  
